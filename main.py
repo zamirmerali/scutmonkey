@@ -7,9 +7,9 @@ from kivy.uix.widget import Widget
 class ScutWidget(Widget):
 	pass
 
-class ScutMonkey(App):
+class ScutApp(App):
 	def build(self):
 		return ScutWidget()
 
 if __name__ == '__main__':
-	ScutMonkey().run()
+	ScutApp().run()
