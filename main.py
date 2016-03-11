@@ -11,10 +11,8 @@ from kivy.uix.button import Button
 from kivy.uix.dropdown import DropDown 
 from kivy.base import runTouchApp
 from kivy.uix.textinput import TextInput
+import sqlite3
 import abstraction
-
-#Create the database
-CreateDatabase
 
 #Define Consult Summary Widget
 class ConsultWidget(Widget):
@@ -59,43 +57,49 @@ class ConsultWidget(Widget):
 	consultpage.add_widget(imaging)
 	consultpage.add_widget(plan)
 
-#Define Consult Summary Widget
+#Define Consult Input Widget
 class ConsultInputWidget(Widget):
 	#Define the layouts
 	consultpage = BoxLayout(orientation='vertical')
 	top_bar = BoxLayout(orientation='horizontal')
+	id_bar = BoxLayout(orientation='horizontal')
 
 	#Define the buttons
 	##Define the back to shift summary button
 	go_shift_summary = Button(text='Back to Shift Summary')
 	##Define the write consult button
-	write_consult = Button(text='Start the Consult')
+	start_consult = Button(text='Start the Consult')
 
 	#Define the Text Inputs
-	identification = TextInput(text="ID")
-	identification.bind(text=tempfunction)
+	mrn = TextInput(text="MRN")
+	name = TextInput(text="name")
 	story = TextInput(text="story goes here", font_size=18)
-	story.bind(text=tempfunction)
 	exam = TextInput(text="exam goes here", font_size=18)
-	exam.bind(text=tempfunction)
 	labs = TextInput(text="labs go here", font_size=18)
-	labs.bind(text=tempfunction)
 	imaging = TextInput(text="imaging goes here", font_size=18)
-	imaging.bind(text=tempfunction)
 	plan = TextInput(text="plan goes here", font_size=18)
-	plan.bind(text=tempfunction)
 
 	#Define the widget tree for the input page
+	#Create the top bar
 	consultpage.add_widget(top_bar)
 	top_bar.add_widget(go_shift_summary)
-	top_bar.add_widget(write_consult)
-
-	consultpage.add_widget(identification)
+	top_bar.add_widget(start_consult)
+	#Create the ID bar
+	consultpage.add_widget(id_bar)
+	id_bar.add_widget(mrn)
+	id_bar.add_widget(name)
+	#Create the consult information
 	consultpage.add_widget(story)
 	consultpage.add_widget(exam)
 	consultpage.add_widget(labs)
 	consultpage.add_widget(imaging)
 	consultpage.add_widget(plan)
+
+	#set the action of the start consult button
+	db = abstraction.Database()
+	sq1 = "INSERT INTO Consults (mrn, name, story, exam, labs, imaging, plan) VALUES (?,?,?,?,?,?,?)", (mrn, name,story, exam, labs, imaging, plan)
+	print sq1
+	start_consult.bind(on_press=db.executescript(sq1))
 
 #define main app class
 class ScutApp(App):
