@@ -20,13 +20,21 @@ class Database(object):
 		self.db.commit()
 		cursor.close()
 
+	#find the total number of databse rows
+	def totalrows(self):
+		cursor = self.db.cursor()
+		cursor.execute("SELECT * FROM Consults")
+		numberofrows = len(cursor.fetchall())
+		return numberofrows
+
+
 	#create the database table
 	def setuptable(self):
 		sql = """
 		CREATE TABLE Consults 
 		(
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			mrn INTEGER,
+			mrn TEXT,
 			name TEXT,
 			story TEXT,
 			exam TEXT,
@@ -43,29 +51,54 @@ class Database(object):
 		"""
 		self.executescript(sql)
 
-	#execute any sql statement, used for inserting records
-	def insert(self,sql):
+	#execute a command
+	def execute(self,sql):
 		print sql
-		newID = 0
 		cursor = self.db.cursor()
 		cursor.execute(sql)
-		newID = cursor.lastrowid
 		self.db.commit()
 		cursor.close()
-		return newID
 
-	#select a record from the table
-	def select(self,sql):
+
+	#generate a patient summary
+	def summary(self,user_id):
+		self.user_id = user_id 
+		user_id = user_id+1
+		sql = "SELECT id, mrn, name, story, exam, labs, imaging, plan FROM Consults WHERE id = %s" % user_id 
+		#sql = "SELECT id, mrn, name, story, exam, labs, imaging, plan FROM Consults WHERE id = 3"
+		print sql
 		cursor = self.db.cursor()
 		cursor.execute(sql)
-		records = cursor.fetchall()
+		records = cursor.fetchone()
 		cursor.close()
+		mrn = records[1]
+		name = records[2]
+		story = records[3]
+		exam = records[4]
+		labs = records[5]
+		imaging = records[6]
+		plan = records[7]
 
-#if __name__ == '__main__':
-#	db = Database()
-#	sql = 'SELECT * FROM Consults WHERE mrn="011231"'
-#	records = db.select(sql)
-#	print('1):', records)
+		#format the record into a patient summary. 
+		patientsummary = mrn
+		return patientsummary
+
+		
+
+if __name__ == '__main__':
+	db = Database()
+	newID = db.totalrows()
+	print newID
+	
+	#assign each value to a new variable
+	
+
+	
+
+	
+
+
+
 	
 
 

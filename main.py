@@ -11,27 +11,17 @@ from kivy.uix.button import Button
 from kivy.uix.dropdown import DropDown 
 from kivy.base import runTouchApp
 from kivy.uix.textinput import TextInput
+from kivy.uix.gridlayout import GridLayout
+from kivy.uix.scrollview import ScrollView
 import sqlite3
 import abstraction
+from functools import partial
 
-#Define Consult Summary Widget
+#Define Full Consult Widget
 class ConsultWidget(Widget):
 	#Define the layouts
 	consultpage = BoxLayout(orientation='vertical')
 	top_bar = BoxLayout(orientation='horizontal')
-
-	#Define the dropdown list
-	consult_dropdown = DropDown()
-	states = ['Pending','In Progress','Complete']
-	def callback(instance):
-		x = btn.text
-	for state in states:
-		btn = Button(text='%r' % state, size_hint_y=None, height=44,)
-		btn.bind(on_release=callback)
-		consult_dropdown.add_widget(btn)
-		mainbutton = Button(text='Consult Status')
-		mainbutton.bind(on_release=consult_dropdown.open)
-		consult_dropdown.bind(on_select=lambda instance, x: setattr(mainbutton, 'text', x))
 
 	#Define the buttons
 	##Define the back to shift summary button
@@ -48,7 +38,6 @@ class ConsultWidget(Widget):
 	#Define the widget tree for the consult page
 	consultpage.add_widget(top_bar)
 	top_bar.add_widget(go_shift_summary)
-	top_bar.add_widget(mainbutton)
 
 	consultpage.add_widget(identification)
 	consultpage.add_widget(story)
@@ -71,13 +60,13 @@ class ConsultInputWidget(Widget):
 	start_consult = Button(text='Start the Consult')
 
 	#Define the Text Inputs
-	mrn = TextInput(text="MRN")
-	name = TextInput(text="name")
-	story = TextInput(text="story goes here", font_size=18)
-	exam = TextInput(text="exam goes here", font_size=18)
-	labs = TextInput(text="labs go here", font_size=18)
-	imaging = TextInput(text="imaging goes here", font_size=18)
-	plan = TextInput(text="plan goes here", font_size=18)
+	mrn = TextInput(text="MRN", font_size=12)
+	name = TextInput(text="name", font_size=12)
+	story = TextInput(text="story goes here", font_size=12)
+	exam = TextInput(text="exam goes here", font_size=12)
+	labs = TextInput(text="labs go here", font_size=12)
+	imaging = TextInput(text="imaging goes here", font_size=12)
+	plan = TextInput(text="plan goes here", font_size=12)
 
 	#Define the widget tree for the input page
 	#Create the top bar
@@ -95,17 +84,63 @@ class ConsultInputWidget(Widget):
 	consultpage.add_widget(imaging)
 	consultpage.add_widget(plan)
 
+
 	#set the action of the start consult button
+	def callback(*args):
+		db = abstraction.Database()
+		sql = """
+		INSERT INTO Consults (mrn, name, story, exam, labs, imaging, plan) VALUES ('%s','%s','%s','%s','%s','%s','%s') ;
+		""" % (
+			ConsultInputWidget.mrn.text,
+			ConsultInputWidget.name.text,
+			ConsultInputWidget.story.text,
+			ConsultInputWidget.exam.text,
+			ConsultInputWidget.labs.text,
+			ConsultInputWidget.imaging.text,
+			ConsultInputWidget.plan.text)
+
+		print "Something happened"
+		db.executescript(sql)
+
+	start_consult.bind(on_release = callback)
+
+#Define the Shift Summary Widget
+class ShiftSummaryWidget(Widget):
+	#define the layouts
+	encounter = GridLayout(cols=1, spacing=5, size_hint_y=None)
+	root = ScrollView(size_hint=(None, None), size=(800, 600))
+	#Define the buttons
+	#figure out how many rows there are
 	db = abstraction.Database()
-	sq1 = "INSERT INTO Consults (mrn, name, story, exam, labs, imaging, plan) VALUES (?,?,?,?,?,?,?)", (mrn, name,story, exam, labs, imaging, plan)
-	print sq1
-	start_consult.bind(on_press=db.executescript(sq1))
+	numberofrows = db.totalrows()
+
+	#Define the summary buttons
+	encounter.bind(minimum_height=encounter.setter('height'))
+	for i in range(numberofrows):
+		db = abstraction.Database()
+		patientsummary = db.summary(i)
+		btn = Button(text=str(patientsummary), size_hint_y=None, height=100)
+		encounter.add_widget(btn)
+	
+	
+	#Define the labels
+
+	#Define the widget tree for the Shift Summary Page
+	root.add_widget(encounter)
+
+	
 
 #define main app class
 class ScutApp(App):
 	def build(self):
 		#show the consult page
-		return ConsultInputWidget.consultpage
+		#return ConsultInputWidget.consultpage
+
+		#show the consult summary page
+		#return ConsultWidget.consultpage
+
+		#show the shift summary page
+		return ShiftSummaryWidget.root
 
 if __name__ == '__main__':
 	ScutApp().run()
