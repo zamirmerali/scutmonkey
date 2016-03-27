@@ -5,12 +5,18 @@ import os
 
 #create a database abstraction class. This handles all database interaction
 class Database(object):
+	column_labels=['mrn','name','hpi','gcs','cn','motor','sensory','coags','labs','cthead','mribrain','plan','todo']
+
 	#create the database, main function
 	def __init__(self, db_file="data/data.db"):
 		database_already_exists = os.path.exists(db_file)
 		self.db = sqlite3.connect(db_file)
 		if not database_already_exists:
 			self.setuptable()
+
+	def labels(self,column_lables):
+		for i in column_labels:
+			print i
 
 	#execute any SQL statement
 	def executescript(self,sql):
@@ -80,10 +86,21 @@ class Database(object):
 		plan = records[7]
 
 		#format the record into a patient summary. 
-		patientsummary = mrn
+		patientsummary = "MRN: " + mrn + "  Name: " + name + "\nID:" + story + "\nExam:" + exam + " Imaging: " + imaging + "\nPlan: " + plan
 		return patientsummary
 
-		
+	#generate a consult overview
+	def consultoverview(self,user_id):
+		self.user_id = user_id
+		user_id = user_id+1
+		sql = "SELECT id, mrn, name, story, exam, labs, imaging, plan FROM Consults WHERE id = %s" % user_id 
+		print sql
+		cursor = self.db.cursor()
+		cursor.execute(sql)
+		records = cursor.fetchone()
+		cursor.close()
+
+		return records
 
 if __name__ == '__main__':
 	db = Database()
